@@ -1,0 +1,341 @@
+.app-layout {
+  min-height: 100vh;
+  overflow: visible;
+}
+
+.app-layout>.ant-layout {
+  min-height: calc(100vh - 64px);
+  margin-left: 230px;
+  overflow: visible;
+}
+
+.app-layout .ant-layout-sider {
+  position: fixed;
+  top: 64px;
+  left: 0;
+  height: calc(100vh - 64px);
+  overflow: hidden;
+}
+
+.app-layout>.ant-layout {
+  flex-direction: row;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.header h2 {
+  margin: 0;
+}
+
+.content {
+  padding: 24px;
+  background: #f5f6f2;
+  min-width: 0;
+}
+
+.login-page {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 32px 20px;
+  background:
+    radial-gradient(ellipse at 16% 12%, rgb(219 232 255 / 52%), transparent 35%),
+    radial-gradient(ellipse at 86% 88%, rgb(224 235 248 / 62%), transparent 34%),
+    #f5f6f8;
+  color: #14243b;
+  font-family: "Aptos", "Segoe UI", sans-serif;
+}
+
+.login-panel {
+  width: min(100%, 636px);
+  padding: 44px;
+  border: 1px solid rgb(224 230 239 / 85%);
+  border-radius: 16px;
+  background: rgb(255 255 255 / 96%);
+  box-shadow: 0 22px 60px rgb(24 42 67 / 11%);
+}
+
+.login-heading {
+  margin-bottom: 36px;
+  text-align: center;
+}
+
+.login-heading h1 {
+  margin: 0 0 8px;
+  color: #101f34;
+  font-size: 48px;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.login-heading p {
+  margin: 0;
+  color: #64748b;
+  font-size: 18px;
+  line-height: 1.5;
+}
+
+.login-form {
+  display: grid;
+  gap: 26px;
+}
+
+.login-field {
+  display: grid;
+  gap: 9px;
+}
+
+.login-field label {
+  color: #26364c;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.login-field .ant-input-affix-wrapper {
+  min-height: 54px;
+  padding: 0 17px;
+  border-color: #d8e0eb;
+  border-radius: 8px;
+  box-shadow: none;
+}
+
+.login-field .ant-input-affix-wrapper:hover,
+.login-field .ant-input-affix-wrapper-focused {
+  border-color: #4386f5;
+}
+
+.login-field .ant-input-prefix {
+  margin-inline-end: 18px;
+  color: #718096;
+  font-size: 20px;
+}
+
+.login-field .ant-input {
+  color: #17283e;
+  font-size: 16px;
+}
+
+.login-field .ant-input::placeholder {
+  color: #98a3b3;
+}
+
+.login-error {
+  margin-top: -8px;
+}
+
+.login-submit.ant-btn {
+  height: 54px;
+  border: 0;
+  border-radius: 8px;
+  background: #1769ee;
+  box-shadow: 0 8px 18px rgb(23 105 238 / 19%);
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.login-submit.ant-btn:hover {
+  background: #0e5bd8;
+}
+
+.roles-page {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.roles-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.roles-page-header h2 {
+  margin: 0;
+}
+
+.footer {
+  text-align: center;
+}
+
+.main-content {
+  margin-left: 250px;
+  min-height: calc(100vh - 64px);
+  height: auto;
+  overflow: visible;
+}
+
+.sidebar {
+  flex: 0 0 220px;
+  width: 220px;
+  min-width: 220px;
+  min-height: 100vh;
+  background: #fff;
+  color: #252a25;
+  padding: 24px 16px;
+  flex-direction: column;
+  gap: 15px;
+  box-sizing: border-box;
+  border-right: 1px solid #e4e8e1;
+  position: fixed;
+  overflow-x: hidden;
+  overflow-y: hidden;
+}
+
+.sidebar h2 {
+  color: #252a25;
+  margin-bottom: 22px;
+  font-size: 18px;
+}
+
+.sidebar a {
+  color: #525b52;
+  text-decoration: none;
+  display: block;
+  margin-bottom: 5px;
+  padding: 8px 10px;
+  border-radius: 4px;
+}
+
+.sidebar a:hover {
+  color: #245b3b;
+  background: #edf4ed;
+}
+
+.parking-page {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.parking-title {
+  margin: 0 0 18px;
+  color: #252a25;
+  font-size: 24px;
+  text-align: center;
+}
+
+.parking-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 14px;
+}
+
+.parking-section {
+  margin-bottom: 24px;
+}
+
+.parking-section h2 {
+  margin: 0 0 12px;
+  color: #303730;
+  font-size: 18px;
+}
+
+.slot {
+  border-radius: 5px;
+  box-shadow: 0 1px 4px rgb(35 50 35 / 7%);
+}
+
+.slot .ant-card-body {
+  min-height: 78px;
+  padding: 12px 14px;
+}
+
+.slot h3 {
+  margin: 0 0 8px;
+  color: #252a25;
+  font-size: 14px;
+}
+
+.slot.available {
+  background: #fff;
+  border-color: #e5e9e1;
+}
+
+.slot.occupied {
+  background: #fff9f6;
+  border-color: #f0ddd4;
+}
+
+@media (max-width: 700px) {
+  .login-page {
+    padding: 20px 16px;
+  }
+
+  .login-panel {
+    padding: 34px 24px;
+    border-radius: 12px;
+  }
+
+  .login-heading {
+    margin-bottom: 28px;
+  }
+
+  .login-heading h1 {
+    font-size: 40px;
+  }
+
+  .login-heading p {
+    font-size: 16px;
+  }
+
+  .login-form {
+    gap: 22px;
+  }
+
+  .content {
+    padding: 16px 12px;
+  }
+
+  .roles-page-header {
+    align-items: flex-start;
+  }
+
+  .sidebar {
+    flex-basis: 180px;
+    width: 180px;
+    min-width: 180px;
+    min-height: 100vh;
+    background: #fff;
+    color: #252a25;
+    padding: 24px 8px;
+    flex-direction: column;
+    gap: 15px;
+    box-sizing: border-box;
+    border-right: 1px solid #e4e8e1;
+  }
+
+  .sidebar h2 {
+    font-size: 15px;
+  }
+
+  .parking-title {
+    font-size: 21px;
+  }
+}
+
+.ant-menu-item-selected {
+  margin: 4px 8px;
+  width: calc(100% - 16px);
+}
+
+.ant-menu-item-selected:hover {
+  border-radius: 4px;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+  height: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
+}

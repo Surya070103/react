@@ -1,0 +1,3 @@
+This is File 1.
+This file contains information about React.
+React is a JavaScript library for building user interfaces.

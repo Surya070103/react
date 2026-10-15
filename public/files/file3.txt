@@ -1,0 +1,3 @@
+This is File 4.
+This file contains information about APIs.
+APIs allow different applications to communicate with each other.

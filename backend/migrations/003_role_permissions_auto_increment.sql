@@ -1,0 +1,2 @@
+ALTER TABLE role_permissions
+    MODIFY id INT NOT NULL AUTO_INCREMENT;
