@@ -1,4 +1,4 @@
-A React project for practising role management, permission assignment, and access control.
+A React project for roles and permissions and parking management system
 
 Technologies
 
