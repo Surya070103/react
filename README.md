@@ -1,24 +1,19 @@
-# JavaScript Practice
+A React project for practising role management, permission assignment, and access control.
 
-This repository contains Node.js exercises and a React forms practice app.
+Technologies
 
-## React Forms Practice
+React.js
 
-The app is built with React and Vite.
+JavaScript
 
-```bash
-npm install
-npm run dev
-```
+Node.js and MySQL (if used)
 
-Run `npm run build` to create a production build, or `npm run lint` to check the code.
+Features
 
-## Node.js Exercises
+Manage roles and permissions
 
-Small exercises for learning asynchronous code, events, file operations, HTTP requests, and servers.
+Assign permissions to roles
 
-From this folder, run an exercise with Node.js:
+Integrate APIs
 
-```bash
-node async.js
-```
+Manage user access
