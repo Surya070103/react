@@ -1,6 +1,8 @@
 # E-commerce Backend
 
 TypeScript backend using native Node.js HTTP, TypeORM, and MySQL.
+For the full project architecture, setup, API, database, and feature guide, see
+the [project guide](../README.md).
 
 ## Structure
 

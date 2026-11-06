@@ -1,6 +1,8 @@
 # Shop Easy customer app
 
 The React and Vite frontend provides the Shop Easy storefront and admin screens.
+For the full project architecture, setup, API, database, and feature guide, see
+the [project guide](../README.md).
 The backend is TypeScript running on Node.js's built-in HTTP server; it does not
 use Express. Start MySQL and the backend before using the frontend.
 
