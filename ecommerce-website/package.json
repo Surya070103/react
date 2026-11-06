@@ -2,7 +2,7 @@
   "scripts": {
     "backend": "npm --prefix ecommerce-backend run dev",
     "frontend": "npm --prefix ecommerce-customer run dev",
-    "dev": "npm --prefix ecommerce-customer run dev",
+    "dev": "node scripts/dev.js",
     "test": "npm --prefix ecommerce-backend test",
     "migration:run": "npm --prefix ecommerce-backend run migration:run",
     "migration:revert": "npm --prefix ecommerce-backend run migration:revert"

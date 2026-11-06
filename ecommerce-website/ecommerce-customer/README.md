@@ -4,19 +4,17 @@ The React and Vite frontend provides the Shop Easy storefront and admin screens.
 The backend is TypeScript running on Node.js's built-in HTTP server; it does not
 use Express. Start MySQL and the backend before using the frontend.
 
-Open two terminals in the project root (`e commerence website`) and run:
+Start MySQL, then run both apps from the project root (`e commerence website`):
 
 ```powershell
-npm run backend
+npm run dev
 ```
 
-```powershell
-npm run frontend
-```
-
-The backend reads `ecommerce-backend\.env` and listens on port `3000` by
-default. It only starts listening after it connects to MySQL. The Vite
-development server forwards `/api` requests to that backend.
+This starts the backend and frontend together. The backend reads
+`ecommerce-backend\.env` and listens on port `3000` by default. It only starts
+listening after it connects to MySQL. The Vite development server forwards
+`/api` requests to that backend. To run either app separately, use `npm run
+backend` or `npm run frontend` in another terminal.
 
 ## Customer and admin accounts
 
