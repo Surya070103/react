@@ -1,0 +1,19 @@
+{
+  "scripts": {
+    "backend": "npm --prefix ecommerce-backend run dev",
+    "frontend": "npm --prefix ecommerce-customer run dev",
+    "dev": "npm --prefix ecommerce-customer run dev",
+    "test": "npm --prefix ecommerce-backend test",
+    "migration:run": "npm --prefix ecommerce-backend run migration:run",
+    "migration:revert": "npm --prefix ecommerce-backend run migration:revert"
+  },
+  "dependencies": {
+    "dom": "^0.0.3",
+    "pg": "^8.23.1",
+    "react": "^19.3.1",
+    "reflect-metadata": "^0.2.2",
+    "router": "^2.2.0",
+    "toastify": "^2.0.1",
+    "typeorm": "^1.1.2"
+  }
+}
