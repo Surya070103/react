@@ -1,4 +1,5 @@
 {
+<<<<<<< HEAD
   "name": "react-forms-practice",
   "private": true,
   "version": "0.0.0",
@@ -23,5 +24,23 @@
     "eslint-plugin-react-refresh": "^0.5.4",
     "globals": "^17.11.0",
     "vite": "^8.2.2"
+=======
+  "scripts": {
+    "backend": "npm --prefix ecommerce-backend run dev",
+    "frontend": "npm --prefix ecommerce-customer run dev",
+    "dev": "node scripts/dev.js",
+    "test": "npm --prefix ecommerce-backend test",
+    "migration:run": "npm --prefix ecommerce-backend run migration:run",
+    "migration:revert": "npm --prefix ecommerce-backend run migration:revert"
+  },
+  "dependencies": {
+    "dom": "^0.0.3",
+    "pg": "^8.23.1",
+    "react": "^19.3.1",
+    "reflect-metadata": "^0.2.2",
+    "router": "^2.2.0",
+    "toastify": "^2.0.1",
+    "typeorm": "^1.1.2"
+>>>>>>> b15b1d2 (Initial commit)
   }
 }
