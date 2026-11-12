@@ -23,6 +23,12 @@ export class Product {
   @Column({ type: "int", unsigned: true, default: 0 })
   stock!: number;
 
+  @Column({ name: "discount_percent", type: "int", unsigned: true, default: 0 })
+  discountPercent!: number;
+
+  @Column({ name: "delivery_date", type: "date", nullable: true })
+  deliveryDate!: string | null;
+
   @Column({ length: 20, default: "active" })
   status!: string;
 

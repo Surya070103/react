@@ -17,6 +17,10 @@ import { AddAccountRoles1730200000000 } from "./migrations/AddAccountRoles173020
 import { AddOrderCheckoutDetails1730210000000 } from "./migrations/AddOrderCheckoutDetails1730210000000";
 import { AddPortalSchema1730220000000 } from "./migrations/AddPortalSchema1730220000000";
 import { AddOrderCancellation1730230000000 } from "./migrations/AddOrderCancellation1730230000000";
+import { AddProductOffers1730240000000 } from "./migrations/AddProductOffers1730240000000";
+import { AddOrderItemDeliveryDate1730250000000 } from "./migrations/AddOrderItemDeliveryDate1730250000000";
+import { SeedCatalogAvailability1730270000000 } from "./migrations/SeedCatalogAvailability1730270000000";
+import { SeedOutOfStockExamples1730280000000 } from "./migrations/SeedOutOfStockExamples1730280000000";
 
 export const AppDataSource = new DataSource({
   type: "mysql",
@@ -34,5 +38,9 @@ export const AppDataSource = new DataSource({
     AddOrderCheckoutDetails1730210000000,
     AddPortalSchema1730220000000,
     AddOrderCancellation1730230000000,
+    AddProductOffers1730240000000,
+    AddOrderItemDeliveryDate1730250000000,
+    SeedCatalogAvailability1730270000000,
+    SeedOutOfStockExamples1730280000000,
   ],
 });

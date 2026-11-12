@@ -19,3 +19,8 @@ test('filters inclusively by minimum and maximum price', () => {
 test('returns an empty list when no product matches the price range', () => {
   assert.deepEqual(filterProductsByPrice(products, '1000', '2000'), [])
 })
+
+test('filters by the discounted price when a product is on offer', () => {
+  const discountedProducts = [{ id: 'sale', price: 1000, discountPercent: 50 }]
+  assert.deepEqual(filterProductsByPrice(discountedProducts, '500', '500'), discountedProducts)
+})

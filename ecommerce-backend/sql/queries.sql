@@ -9,7 +9,8 @@ SELECT
   (SELECT COUNT(*) FROM payments WHERE payment_status = 'paid') AS paid_payment_count;
 
 
-SELECT p.product_id, p.product_name, c.category_name, p.price, p.stock, p.status
+SELECT p.product_id, p.product_name, c.category_name, p.price, p.discount_percent,
+       p.stock, p.delivery_date, p.status
 FROM products AS p
 JOIN categories AS c ON c.category_id = p.category_id
 ORDER BY p.product_name;
@@ -75,7 +76,8 @@ WHERE stock <= 5
 ORDER BY stock ASC, product_name;
 
 
-SELECT p.product_id, p.product_name, p.description, p.price, p.stock, p.image,
+SELECT p.product_id, p.product_name, p.description, p.price, p.discount_percent,
+       p.stock, p.delivery_date, p.image,
        c.category_id, c.category_name
 FROM products AS p
 JOIN categories AS c ON c.category_id = p.category_id
@@ -83,7 +85,8 @@ WHERE p.status = 'active' AND c.status = 'active'
 ORDER BY p.product_name;
 
 
-SELECT p.product_id, p.product_name, p.description, p.price, p.stock, p.image
+SELECT p.product_id, p.product_name, p.description, p.price, p.discount_percent,
+       p.stock, p.delivery_date, p.image
 FROM products AS p
 JOIN categories AS c ON c.category_id = p.category_id
 WHERE p.category_id = 1
@@ -93,7 +96,9 @@ ORDER BY p.product_name;
 
 
 SELECT ci.cart_item_id, p.product_id, p.product_name, p.image,
-       p.price, ci.quantity, (p.price * ci.quantity) AS line_total
+       ROUND(p.price * (100 - p.discount_percent) / 100, 2) AS price,
+       ci.quantity,
+       (ROUND(p.price * (100 - p.discount_percent) / 100, 2) * ci.quantity) AS line_total
 FROM carts AS c
 JOIN cart_items AS ci ON ci.cart_id = c.cart_id
 JOIN products AS p ON p.product_id = ci.product_id
@@ -101,7 +106,8 @@ WHERE c.user_id = 1
 ORDER BY ci.cart_item_id;
 
 
-SELECT p.product_id, p.product_name, p.price, p.image, wi.created_at
+SELECT p.product_id, p.product_name, p.price, p.discount_percent,
+       p.delivery_date, p.image, wi.created_at
 FROM wishlists AS w
 JOIN wishlist_items AS wi ON wi.wishlist_id = w.wishlist_id
 JOIN products AS p ON p.product_id = wi.product_id

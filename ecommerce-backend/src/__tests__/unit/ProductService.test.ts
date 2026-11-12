@@ -17,6 +17,8 @@ describe("ProductService Unit Tests", () => {
     description: "RGB Mechanical Keyboard",
     price: 1999,
     stock: 0,
+    discountPercent: 0,
+    deliveryDate: null,
     status: "active",
     imageUrl: "http://example.com/keyboard.jpg",
     ownerUserId: null,
@@ -54,6 +56,9 @@ describe("ProductService Unit Tests", () => {
         description: "  A wireless mouse ",
         imageUrl: " https://example.com/mouse.jpg ",
         price: 799,
+        stock: 8,
+        discountPercent: 15,
+        deliveryDate: "2026-12-24",
       };
       const createdProduct = { ...sampleProduct, ...input, id: 2 };
       mockProductRepository.findByName.mockResolvedValue(null);
@@ -67,6 +72,9 @@ describe("ProductService Unit Tests", () => {
         description: "A wireless mouse",
         imageUrl: "https://example.com/mouse.jpg",
         price: 799,
+        stock: 8,
+        discountPercent: 15,
+        deliveryDate: "2026-12-24",
         ownerUserId: null,
       });
     });
@@ -80,8 +88,33 @@ describe("ProductService Unit Tests", () => {
         description: sampleProduct.description,
         imageUrl: sampleProduct.imageUrl,
         price: sampleProduct.price,
+        stock: sampleProduct.stock,
+        discountPercent: sampleProduct.discountPercent,
+        deliveryDate: sampleProduct.deliveryDate,
       })).rejects.toThrow("A product with this name already exists");
       expect(mockProductRepository.create).not.toHaveBeenCalled();
+    });
+
+    it("should default new offer and inventory fields for older API clients", async () => {
+      const input = {
+        name: "Basic Product",
+        category: "General",
+        description: "A product created without optional inventory fields",
+        imageUrl: "https://example.com/product.png",
+        price: 100,
+      };
+      mockProductRepository.findByName.mockResolvedValue(null);
+      mockProductRepository.create.mockResolvedValue(sampleProduct);
+
+      await productService.create(input);
+
+      expect(mockProductRepository.create).toHaveBeenCalledWith({
+        ...input,
+        stock: 0,
+        discountPercent: 0,
+        deliveryDate: null,
+        ownerUserId: null,
+      });
     });
   });
 
@@ -118,6 +151,9 @@ describe("ProductService Unit Tests", () => {
         description: sampleProduct.description,
         price: 2499,
         imageUrl: sampleProduct.imageUrl,
+        stock: sampleProduct.stock,
+        discountPercent: sampleProduct.discountPercent,
+        deliveryDate: sampleProduct.deliveryDate,
       });
       expect(result.price).toBe(2499);
     });
@@ -155,6 +191,9 @@ describe("ProductService Unit Tests", () => {
         description: sampleProduct.description,
         price: sampleProduct.price,
         imageUrl: sampleProduct.imageUrl,
+        stock: sampleProduct.stock,
+        discountPercent: sampleProduct.discountPercent,
+        deliveryDate: sampleProduct.deliveryDate,
       });
     });
 
@@ -164,6 +203,15 @@ describe("ProductService Unit Tests", () => {
       await expect(productService.update(1, { price: 0 })).rejects.toThrow(
         "Price must be greater than zero"
       );
+      expect(mockProductRepository.update).not.toHaveBeenCalled();
+    });
+
+    it("should reject invalid stock, discount, and delivery-date values", async () => {
+      mockProductRepository.findById.mockResolvedValue(sampleProduct);
+
+      await expect(productService.update(1, { stock: -1 })).rejects.toThrow("Stock must be a non-negative whole number");
+      await expect(productService.update(1, { discountPercent: 101 })).rejects.toThrow("Discount must be a whole number between 0 and 100");
+      await expect(productService.update(1, { deliveryDate: "2026-02-30" })).rejects.toThrow("Delivery date must be a valid date");
       expect(mockProductRepository.update).not.toHaveBeenCalled();
     });
   });

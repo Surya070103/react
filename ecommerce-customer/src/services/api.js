@@ -6,6 +6,9 @@ const toProduct = (product) => ({
   category: product.category,
   description: product.description,
   price: Number(product.price),
+  stock: Number(product.stock || 0),
+  discountPercent: Number(product.discountPercent || 0),
+  deliveryDate: product.deliveryDate ? String(product.deliveryDate).slice(0, 10) : null,
   image: product.imageUrl || '/images/everyday-shirt.png',
 });
 
@@ -30,6 +33,7 @@ const toOrder = (order) => ({
     productId: String(item.productId),
     price: Number(item.price),
     quantity: Number(item.quantity),
+    deliveryDate: item.deliveryDate ? String(item.deliveryDate).slice(0, 10) : null,
   })),
   total: Number(order.total),
   createdAt: order.createdAt,
@@ -183,6 +187,9 @@ export const api = {
         description: productData.description,
         price: productData.price,
         imageUrl: productData.image,
+        stock: productData.stock,
+        discountPercent: productData.discountPercent,
+        deliveryDate: productData.deliveryDate,
       }),
     });
     if (!response.ok) {
@@ -203,6 +210,9 @@ export const api = {
         description: productData.description,
         price: productData.price,
         imageUrl: productData.image,
+        stock: productData.stock,
+        discountPercent: productData.discountPercent,
+        deliveryDate: productData.deliveryDate,
       }),
     });
     if (!response.ok) {

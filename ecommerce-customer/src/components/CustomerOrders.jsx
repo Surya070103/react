@@ -1,4 +1,4 @@
-import { formatInr, getOrderStatusLabel, getPaymentMethodLabel } from '../utils/formatters'
+import { formatDeliveryDate, formatInr, getOrderStatusLabel, getPaymentMethodLabel } from '../utils/formatters'
 
 export default function CustomerOrders({
   orders,
@@ -10,6 +10,7 @@ export default function CustomerOrders({
   onCancelOrder,
 }) {
   const productMap = new Map((products || []).map((product) => [String(product.id), product]))
+  const activeOrders = orders.filter((order) => order.status !== 'cancelled')
 
   return (
     <section className="products-section wishlist-section customer-orders-section">
@@ -24,11 +25,13 @@ export default function CustomerOrders({
         </button>
       </div>
       {message && <p className="storage-message" role="alert">{message}</p>}
-      {orders.length === 0 ? (
-        <p className="wishlist-empty">You haven’t placed any orders yet.</p>
+      {activeOrders.length === 0 ? (
+        <p className="wishlist-empty">
+          {orders.length === 0 ? 'You haven’t placed any orders yet.' : 'You have no active orders.'}
+        </p>
       ) : (
         <div className="customer-order-list">
-          {orders.map((order) => {
+          {activeOrders.map((order) => {
             const orderDate = new Date(order.createdAt)
             const formattedDate = Number.isNaN(orderDate.getTime())
               ? 'Date unavailable'
@@ -70,8 +73,12 @@ export default function CustomerOrders({
                                 alt={item.name}
                               />
                               <span className="customer-order-item-name">
-                                {item.name}
-                                <span className="customer-order-quantity">× {item.quantity}</span>
+                                <span>{item.name} <span className="customer-order-quantity">× {item.quantity}</span></span>
+                                <span className="customer-order-delivery">
+                                  {item.deliveryDate
+                                    ? `Delivery by ${formatDeliveryDate(item.deliveryDate)}`
+                                    : 'Delivery date not recorded'}
+                                </span>
                               </span>
                             </div>
                             <strong>{formatInr(item.price * item.quantity)}</strong>

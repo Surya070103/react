@@ -1,8 +1,19 @@
 export const formatInr = (amount) => new Intl.NumberFormat('en-IN', {
   style: 'currency',
   currency: 'INR',
-  maximumFractionDigits: 0,
+  maximumFractionDigits: 2,
 }).format(amount)
+
+export const getDiscountedPrice = (product) => (
+  Math.round(product.price * (100 - (product.discountPercent || 0))) / 100
+)
+
+export const formatDeliveryDate = (date) => (
+  date
+    ? new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+      .format(new Date(`${String(date).slice(0, 10)}T00:00:00`))
+    : ''
+)
 
 export const getPaymentMethodLabel = (paymentMethod) => ({
   cash_on_delivery: 'Cash on delivery',

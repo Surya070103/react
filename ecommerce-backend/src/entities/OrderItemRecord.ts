@@ -19,4 +19,7 @@ export class OrderItemRecord {
 
   @Column({ type: "decimal", precision: 12, scale: 2 })
   price!: number;
+
+  @Column({ name: "delivery_date", type: "date", nullable: true })
+  deliveryDate!: string | null;
 }

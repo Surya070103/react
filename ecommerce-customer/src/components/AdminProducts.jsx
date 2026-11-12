@@ -59,6 +59,18 @@ export default function AdminProducts({
                 <input id="admin-product-price" name="price" type="number" min="1" step="1" required defaultValue={selectedProduct?.price || ''} />
               </div>
               <div className="admin-field">
+                <label htmlFor="admin-product-stock">Stock quantity</label>
+                <input id="admin-product-stock" name="stock" type="number" min="0" step="1" required defaultValue={selectedProduct?.stock ?? 0} />
+              </div>
+              <div className="admin-field">
+                <label htmlFor="admin-product-discount">Discount (%)</label>
+                <input id="admin-product-discount" name="discountPercent" type="number" min="0" max="100" step="1" required defaultValue={selectedProduct?.discountPercent ?? 0} />
+              </div>
+              <div className="admin-field">
+                <label htmlFor="admin-product-delivery-date">Delivery date</label>
+                <input id="admin-product-delivery-date" name="deliveryDate" type="date" defaultValue={selectedProduct?.deliveryDate || ''} />
+              </div>
+              <div className="admin-field">
                 <label htmlFor="admin-product-image">Image URL (optional)</label>
                 <input id="admin-product-image" name="image" type="text" defaultValue={selectedProduct?.image || ''} placeholder="Paste an image URL" />
               </div>
@@ -113,6 +125,9 @@ export default function AdminProducts({
                     <th scope="col">Product</th>
                     <th scope="col">Category</th>
                     <th scope="col">Price</th>
+                    <th scope="col">Discount</th>
+                    <th scope="col">Stock</th>
+                    <th scope="col">Delivery date</th>
                     <th scope="col">Actions</th>
                   </tr>
                 </thead>
@@ -133,6 +148,9 @@ export default function AdminProducts({
                       </td>
                       <td>{product.category}</td>
                       <td><strong className="product-price">{formatInr(product.price)}</strong></td>
+                      <td>{product.discountPercent || 0}%</td>
+                      <td>{product.stock}</td>
+                      <td>{product.deliveryDate || 'Not set'}</td>
                       <td className="admin-product-actions">
                         <button className="admin-secondary-button" type="button" onClick={() => onEditProduct(product)}>Edit</button>
                         <button className="admin-delete-button" type="button" onClick={() => onRequestDeleteProduct(product.id)}>

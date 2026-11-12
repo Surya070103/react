@@ -1,4 +1,4 @@
-import { formatInr, getOrderStatusLabel, getPaymentMethodLabel } from '../utils/formatters'
+import { formatDeliveryDate, formatInr, getOrderStatusLabel, getPaymentMethodLabel } from '../utils/formatters'
 
 export default function AdminOrders({ orders, message }) {
   return (
@@ -45,7 +45,12 @@ export default function AdminOrders({ orders, message }) {
                   <td>
                     <ul className="admin-order-items">
                       {order.items.map((item) => (
-                        <li key={item.productId}>{item.name} × {item.quantity} — {formatInr(item.price * item.quantity)}</li>
+                        <li key={item.productId}>
+                          {item.name} × {item.quantity} — {formatInr(item.price * item.quantity)}
+                          <span className="admin-order-item-delivery">
+                            {item.deliveryDate ? `Delivery by ${formatDeliveryDate(item.deliveryDate)}` : 'Delivery date not recorded'}
+                          </span>
+                        </li>
                       ))}
                     </ul>
                   </td>

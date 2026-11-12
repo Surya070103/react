@@ -1,4 +1,4 @@
-import { formatInr } from '../utils/formatters'
+import { formatDeliveryDate, formatInr, getDiscountedPrice } from '../utils/formatters'
 
 export default function CartCheckout({
   products,
@@ -46,16 +46,20 @@ export default function CartCheckout({
               <div className="cart-item-details">
                 <p className="product-category">{product.category}</p>
                 <h2>{product.name}</h2>
-                <p>{cart.get(product.id)} × {formatInr(product.price)}</p>
+                <p>{cart.get(product.id)} × {formatInr(getDiscountedPrice(product))}</p>
+                {product.stock < cart.get(product.id) && (
+                  <p className="stock-status is-out-of-stock">Only {product.stock} in stock; adjust your cart before checkout.</p>
+                )}
+                {product.deliveryDate && <p className="delivery-date">Delivery by {formatDeliveryDate(product.deliveryDate)}</p>}
               </div>
-              <p className="product-price">{formatInr(product.price * cart.get(product.id))}</p>
+              <p className="product-price">{formatInr(getDiscountedPrice(product) * cart.get(product.id))}</p>
               <button className="remove-cart-item" type="button" onClick={() => onRemoveOne(product.id)}>
                 Remove one
               </button>
             </article>
           ))}
           <p className="cart-total">
-            Total: {formatInr(products.reduce((total, product) => total + product.price * (cart.get(product.id) || 0), 0))}
+            Total: {formatInr(products.reduce((total, product) => total + getDiscountedPrice(product) * (cart.get(product.id) || 0), 0))}
           </p>
           <form className="admin-product-form" onSubmit={onPlaceOrder}>
             <h2>Checkout</h2>
@@ -80,7 +84,11 @@ export default function CartCheckout({
                 <span>Cash on delivery</span>
               </label>
             </div>
-            <button className="login-submit place-order-button" type="submit" disabled={isOrderSubmitting}>
+            <button
+              className="login-submit place-order-button"
+              type="submit"
+              disabled={isOrderSubmitting || products.some((product) => (cart.get(product.id) || 0) > product.stock)}
+            >
               {isOrderSubmitting ? 'Saving order...' : 'Place order'}
             </button>
           </form>

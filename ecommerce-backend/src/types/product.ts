@@ -4,9 +4,15 @@ export interface CreateProductInput {
   description: string;
   price: number;
   imageUrl: string;
+  stock?: number;
+  discountPercent?: number;
+  deliveryDate?: string | null;
 }
 
 export interface PersistProductInput extends CreateProductInput {
+  stock: number;
+  discountPercent: number;
+  deliveryDate: string | null;
   ownerUserId: number | null;
 }
 

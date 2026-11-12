@@ -61,11 +61,17 @@ export class OrderService {
       if (!product) {
         throw new Error(`Product ${cartItem.productId} is no longer available`);
       }
+      if (cartItem.quantity > product.stock) {
+        throw new Error(`${product.name} has only ${product.stock} unit(s) in stock`);
+      }
+      const discountPercent = Number(product.discountPercent || 0);
+      const price = Math.round(Number(product.price) * (100 - discountPercent)) / 100;
       items.push({
         productId: product.id,
         name: product.name,
-        price: Number(product.price),
+        price,
         quantity: cartItem.quantity,
+        deliveryDate: product.deliveryDate,
       });
     }
 

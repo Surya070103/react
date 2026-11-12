@@ -1,42 +1,87 @@
-# Shop Easy customer app
 
-The React and Vite frontend provides the Shop Easy storefront and admin screens.
-For the full project architecture, setup, API, database, and feature guide, see
-the [project guide](../README.md).
-The backend is TypeScript running on Node.js's built-in HTTP server; it does not
-use Express. Start MySQL and the backend before using the frontend.
+Project Overview
+ShopEasy is a full-stack e-commerce application with a customer storefront and an administrator portal. 
 
-Start MySQL, then run both apps from the project root (`e commerence website`):
+Customers can register, sign in, browse products, manage a cart and place orders. Administrators can manage products, customers and
+Orders
+.
+The backend API and MySQL database are the source of truth for accounts, products, carts and orders. 
 
-```powershell
+Administrators can set product stock, discount percentages, and delivery dates. Customers can filter for active offers, see the discounted price and availability, and view the saved delivery date for each item in their order history. Stock is checked at checkout and reduced when an order is placed.
+
+Technology and Project Structure
+
+
+Area
+Responsibility
+React Customer App
+Storefront,Checkout and admin UI
+API Client
+Sends browser requests to backend
+Node js HTTP request
+Receives requests and matches routes
+Routes/Controllers
+Route access checks,request handling
+Repositories/Entities
+TypeORM database access and MySQL table mappings 
+Migrations / Tests 
+Versioned schema changes and automated checks 
+
+
+
+3. How Frontend and Backend Communicate
+
+1.A React page calls a function in the frontend API client.
+
+2.The API client sends a request to an
+/api/…
+endpoint.
+
+3.Vite forwards the request to the backend at
+http://localhost:3000
+during development.
+
+4.The Node.js built-in
+Http
+server matches the route and runs its controller.
+
+5.Services validate data and apply business rules; repositories and TypeORM entities access MySQL.
+
+
+6.The controller returns JSON, and the frontend uses the response to update the UI
+
+
+4. Main Application Features 
+
+
+
+Customer 
+Register and log in; browse product list/details; add items to cart; checkout; view orders. 
+Administrator 
+Add, edit and delete products; view/edit/delete customers; reset customer passwords; access orders. 
+
+
+5.Local Setup — Basic Sequence 
+
+1.Install Node.js/npm and make sure MySQL is running.
+2.Install backend and frontend dependencies:
+npm
+--prefix ecommerce-backend install
+
+npm
+--prefix ecommerce-customer install
+
+3.Run migrations:
+npm run migration:run
+
+4.Start both apps:
 npm run dev
-```
 
-This starts the backend and frontend together. The backend reads
-`ecommerce-backend\.env` and listens on port `3000` by default. It only starts
-listening after it connects to MySQL. The Vite development server forwards
-`/api` requests to that backend. To run either app separately, use `npm run
-backend` or `npm run frontend` in another terminal.
+5.Open the Vite URL shown in the terminal (normally
+http://localhost:5173
+). Backend normally uses port 3000.
 
-## Customer and admin accounts
 
-Customers can create an account or sign in from the storefront. Checkout and
-order history use the signed-in customer account.
 
-Admins open **Administrator sign in** and use the `ADMIN_EMAIL` and
-`ADMIN_PASSWORD` configured in `ecommerce-backend\.env`. Admins can manage
-products, customers, and all orders. Authentication is enforced by the backend;
-the browser does not contain demo passwords or authorization logic.
 
-The storefront saves cart contents and completed orders through the backend.
-The backend derives the customer identity from the authenticated session rather
-than trusting checkout form values. Configure the backend environment using
-`ecommerce-backend\.env.example` before running the apps.
-
-Run frontend checks from this directory:
-
-```powershell
-npm test
-npm run lint
-npm run build
 ```

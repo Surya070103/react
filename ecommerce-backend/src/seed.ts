@@ -54,6 +54,9 @@ async function seed() {
       category: "Apparel",
       description: "A classic, comfortable cotton T-shirt designed for everyday wear.",
       price: 499.00,
+      stock: 18,
+      discountPercent: 15,
+      deliveryDate: "2026-11-18",
       imageUrl: "/images/everyday-shirt.png",
     },
     {
@@ -61,6 +64,9 @@ async function seed() {
       category: "Accessories",
       description: "A slim protective cover that keeps your keyboard clean and comfortable to use.",
       price: 250.00,
+      stock: 0,
+      discountPercent: 0,
+      deliveryDate: "2026-11-20",
       imageUrl: "/images/keyboard-cover.jpg",
     },
     {
@@ -68,6 +74,9 @@ async function seed() {
       category: "Electronics",
       description: "A reliable wireless mouse with smooth tracking for work or everyday browsing.",
       price: 399.00,
+      stock: 24,
+      discountPercent: 10,
+      deliveryDate: "2026-11-17",
       imageUrl: "/images/mouse.jpg",
     },
     {
@@ -75,6 +84,9 @@ async function seed() {
       category: "Electronics",
       description: "A modern smartphone for staying connected, capturing photos, and enjoying apps.",
       price: 96699.00,
+      stock: 0,
+      discountPercent: 0,
+      deliveryDate: "2026-11-22",
       imageUrl: "/images/smartphone.png",
     },
   ];

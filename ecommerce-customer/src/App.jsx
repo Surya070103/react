@@ -9,7 +9,7 @@ import AdminOrders from './components/AdminOrders'
 import CartCheckout from './components/CartCheckout'
 import AdminCustomers from './components/AdminCustomers'
 import AdminProducts from './components/AdminProducts'
-import { formatInr, getPaymentMethodLabel } from './utils/formatters'
+import { formatDeliveryDate, formatInr, getDiscountedPrice, getPaymentMethodLabel } from './utils/formatters'
 
 const defaultProducts = [
   {
@@ -19,6 +19,9 @@ const defaultProducts = [
     image: '/images/everyday-shirt.png',
     category: 'Apparel',
     description: 'A classic, comfortable cotton T-shirt designed for everyday wear.',
+    stock: 18,
+    discountPercent: 15,
+    deliveryDate: '2026-11-18',
   },
   {
     id: 'keyboard-cover',
@@ -27,6 +30,9 @@ const defaultProducts = [
     image: '/images/keyboard-cover.jpg',
     category: 'Accessories',
     description: 'A slim protective cover that keeps your keyboard clean and comfortable to use.',
+    stock: 0,
+    discountPercent: 0,
+    deliveryDate: '2026-11-20',
   },
   {
     id: 'wireless-mouse',
@@ -35,6 +41,9 @@ const defaultProducts = [
     image: '/images/mouse.jpg',
     category: 'Electronics',
     description: 'A reliable wireless mouse with smooth tracking for work or everyday browsing.',
+    stock: 24,
+    discountPercent: 10,
+    deliveryDate: '2026-11-17',
   },
   {
     id: 'smartphone',
@@ -43,6 +52,9 @@ const defaultProducts = [
     image: '/images/smartphone.png',
     category: 'Electronics',
     description: 'A modern smartphone for staying connected, capturing photos, and enjoying apps.',
+    stock: 0,
+    discountPercent: 0,
+    deliveryDate: '2026-11-22',
   },
 ]
 
@@ -74,7 +86,10 @@ const loadProducts = async () => {
   } catch (error) {
     const reason = error instanceof Error ? error.message : 'Unknown error.'
     console.error('Failed to load products from API:', reason)
-    return { products: defaultProducts, message: `Could not load products from backend: ${reason}` }
+    return {
+      products: defaultProducts,
+      message: `Could not load products from backend: ${reason}. Showing sample products; check that the backend is running and database migrations have been applied.`,
+    }
   }
 }
 
@@ -109,7 +124,9 @@ function App() {
   const [isLoading, setIsLoading] = useState(true)
   const products = productStore.products
   const [priceRange, setPriceRange] = useState({ min: '', max: '' })
+  const [showOffersOnly, setShowOffersOnly] = useState(false)
   const filteredProducts = filterProductsByPrice(products, priceRange.min, priceRange.max)
+    .filter((product) => !showOffersOnly || product.discountPercent > 0)
   const selectedAdminProduct = products.find((product) => product.id === (editingProductId || deleteProductMatch?.params.productId))
   const [cartKey] = useState(() => {
     const storedKey = window.localStorage.getItem(savedCartKey)
@@ -280,7 +297,15 @@ function App() {
   }
 
   const addToCart = (productId) => {
+    const product = products.find((item) => item.id === productId)
+    if (!product) return
+    const quantity = cart.get(productId) || 0
+    if (quantity >= product.stock) {
+      setCartMessage(`Only ${product.stock} ${product.stock === 1 ? 'unit is' : 'units are'} available for ${product.name}.`)
+      return
+    }
     setOrderConfirmation('')
+    setCartMessage('')
     setCart((currentCart) => {
       const nextCart = new Map(currentCart)
       nextCart.set(productId, (nextCart.get(productId) || 0) + 1)
@@ -424,9 +449,23 @@ function App() {
     const description = String(formData.get('description') || '').trim()
     const imageUrl = String(formData.get('image') || '').trim()
     const price = Number(formData.get('price'))
+    const stock = Number(formData.get('stock'))
+    const discountPercent = Number(formData.get('discountPercent'))
+    const deliveryDate = String(formData.get('deliveryDate') || '') || null
 
-    if (!name || !category || !description || !Number.isFinite(price) || price <= 0) {
-      setAdminFormMessage('Enter a name, category, description, and price greater than zero.')
+    if (
+      !name
+      || !category
+      || !description
+      || !Number.isFinite(price)
+      || price <= 0
+      || !Number.isInteger(stock)
+      || stock < 0
+      || !Number.isInteger(discountPercent)
+      || discountPercent < 0
+      || discountPercent > 100
+    ) {
+      setAdminFormMessage('Enter a valid price, stock quantity, and discount from 0 to 100%.')
       return
     }
 
@@ -449,6 +488,9 @@ function App() {
       description,
       image: imageUrl || existingProduct?.image || '/images/everyday-shirt.png',
       price,
+      stock,
+      discountPercent,
+      deliveryDate,
     }
     try {
       const savedProduct = editingProductId
@@ -610,6 +652,15 @@ function App() {
         shippingAddress: String(formData.get('shippingAddress') || '').trim(),
         paymentMethod: 'cash_on_delivery',
       })
+      setProductStore((current) => ({
+        ...current,
+        products: current.products.map((product) => {
+          const orderedItem = order.items.find((item) => item.productId === product.id)
+          return orderedItem
+            ? { ...product, stock: Math.max(0, product.stock - orderedItem.quantity) }
+            : product
+        }),
+      }))
       setOrderStore((current) => ({
         ...current,
         orders: [order, ...current.orders.filter((existingOrder) => existingOrder.id !== order.id)],
@@ -873,8 +924,11 @@ function App() {
             <ProductCatalog
               products={products}
               filteredProducts={filteredProducts}
+              message={productStore.message}
               priceRange={priceRange}
               setPriceRange={setPriceRange}
+              showOffersOnly={showOffersOnly}
+              setShowOffersOnly={setShowOffersOnly}
               cart={cart}
               wishlist={wishlist}
               toggleWishlist={toggleWishlist}
@@ -890,6 +944,7 @@ function App() {
               if (!product) {
                 return (
                   <section className="products-section wishlist-section">
+                    {productStore.message && <p className="storage-message" role="alert">{productStore.message}</p>}
                     <p className="wishlist-empty">This product is no longer available.</p>
                     <button className="shop-button wishlist-back" type="button" onClick={() => setActiveView('store')}>
                       Back to products
@@ -900,6 +955,7 @@ function App() {
 
               return (
                 <section className="products-section product-detail-section">
+                  {productStore.message && <p className="storage-message" role="alert">{productStore.message}</p>}
                   <button className="product-back-button" type="button" onClick={() => setActiveView('store')}>
                     Back to products
                   </button>
@@ -913,11 +969,23 @@ function App() {
                     <div className="product-detail-content">
                       <p className="product-category">{product.category}</p>
                       <h1>{product.name}</h1>
-                      <p className="product-price">{formatInr(product.price)}</p>
+                      <div className="product-pricing">
+                        {product.discountPercent > 0 && <del>{formatInr(product.price)}</del>}
+                        <p className="product-price">{formatInr(getDiscountedPrice(product))}</p>
+                        {product.discountPercent > 0 && <span className="discount-label">{product.discountPercent}% off</span>}
+                      </div>
+                      <p className={product.stock > 0 ? 'stock-status' : 'stock-status is-out-of-stock'}>
+                        {product.stock > 0
+                          ? product.stock <= 5 ? `Only ${product.stock} left in stock` : 'In stock'
+                          : 'Out of stock'}
+                      </p>
+                      {product.deliveryDate && (
+                        <p className="delivery-date">Delivery by {formatDeliveryDate(product.deliveryDate)}</p>
+                      )}
                       <p className="product-detail-description">{product.description}</p>
                       <div className="product-detail-actions">
-                        <button className="login-submit" type="button" onClick={() => addToCart(product.id)}>
-                          Add to cart
+                        <button className="login-submit" type="button" onClick={() => addToCart(product.id)} disabled={product.stock <= 0}>
+                          {product.stock > 0 ? 'Add to cart' : 'Out of stock'}
                         </button>
                         <button
                           className={`product-detail-wishlist${wishlist.has(product.id) ? ' is-wishlisted' : ''}`}
@@ -954,6 +1022,7 @@ function App() {
                   {products.filter((product) => wishlist.has(product.id)).map((product) => (
                     <article className="product-card" key={product.id}>
                       <div className="product-image">
+                        {product.discountPercent > 0 && <span className="offer-badge">{product.discountPercent}% off</span>}
                         <img
                           className={productImageClass(product)}
                           src={getProductImage(product)}
@@ -989,7 +1058,11 @@ function App() {
                           </button>
                           <p className="product-description">{product.description}</p>
                         </div>
-                        <p className="product-price">{formatInr(product.price)}</p>
+                        <div className="product-pricing">
+                          {product.discountPercent > 0 && <del>{formatInr(product.price)}</del>}
+                          <p className="product-price">{formatInr(getDiscountedPrice(product))}</p>
+                          {product.discountPercent > 0 && <span className="discount-label">{product.discountPercent}% off</span>}
+                        </div>
                       </div>
                     </article>
                   ))}

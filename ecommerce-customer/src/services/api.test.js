@@ -15,6 +15,9 @@ test('updateProduct sends PATCH to the requested product record ID', async () =>
     description: 'Updated description',
     price: 600,
     image: '/images/mouse.jpg',
+    stock: 8,
+    discountPercent: 15,
+    deliveryDate: '2026-12-24',
   }
   const updatedRecord = {
     id: 42,
@@ -41,6 +44,9 @@ test('updateProduct sends PATCH to the requested product record ID', async () =>
     description: productData.description,
     price: productData.price,
     imageUrl: productData.image,
+    stock: productData.stock,
+    discountPercent: productData.discountPercent,
+    deliveryDate: productData.deliveryDate,
   })
   assert.deepEqual(result, {
     id: '42',
@@ -48,6 +54,9 @@ test('updateProduct sends PATCH to the requested product record ID', async () =>
     category: productData.category,
     description: productData.description,
     price: productData.price,
+    stock: productData.stock,
+    discountPercent: productData.discountPercent,
+    deliveryDate: productData.deliveryDate,
     image: productData.image,
   })
 })
@@ -220,7 +229,13 @@ test('createOrder sends the cart key and normalizes the saved order', async () =
         customerId: 3,
         customerName: 'Sam Lee',
         customerEmail: 'sam@example.com',
-        items: [{ productId: 7, name: 'Mouse', price: '19.99', quantity: 2 }],
+        items: [{
+          productId: 7,
+          name: 'Mouse',
+          price: '19.99',
+          quantity: 2,
+          deliveryDate: '2026-12-24T00:00:00.000Z',
+        }],
         total: '39.98',
         createdAt: '2026-11-03T00:00:00.000Z',
         shippingAddress: '12 Main Street, Pune',
@@ -240,7 +255,13 @@ test('createOrder sends the cart key and normalizes the saved order', async () =
   assert.equal(request.url, '/api/orders')
   assert.equal(request.options.method, 'POST')
   assert.deepEqual(JSON.parse(request.options.body), orderData)
-  assert.deepEqual(order.items, [{ productId: '7', name: 'Mouse', price: 19.99, quantity: 2 }])
+  assert.deepEqual(order.items, [{
+    productId: '7',
+    name: 'Mouse',
+    price: 19.99,
+    quantity: 2,
+    deliveryDate: '2026-12-24',
+  }])
   assert.equal(order.total, 39.98)
   assert.equal(order.shippingAddress, '12 Main Street, Pune')
   assert.equal(order.paymentMethod, 'cash_on_delivery')

@@ -175,6 +175,9 @@ describe("API and database integration", () => {
         description: "Database integration fixture",
         price: 19.99,
         imageUrl: "https://example.com/integration-product.png",
+        stock: 7,
+        discountPercent: 20,
+        deliveryDate: "2026-12-24",
       });
 
     expect(createResponse.status).toBe(201);
@@ -184,6 +187,9 @@ describe("API and database integration", () => {
     const savedProduct = await TestDataSource.getRepository(Product).findOneByOrFail({ id: productId });
     expect(savedProduct.name).toBe(productName);
     expect(Number(savedProduct.price)).toBe(19.99);
+    expect(savedProduct.stock).toBe(7);
+    expect(savedProduct.discountPercent).toBe(20);
+    expect(savedProduct.deliveryDate).toBe("2026-12-24");
 
     const readResponse = await request(server).get(`/api/products/${productId}`);
     expect(readResponse.status).toBe(200);
@@ -219,6 +225,9 @@ describe("API and database integration", () => {
         description: "Order integration fixture",
         price: 19.99,
         imageUrl: "https://example.com/order-product.png",
+        stock: 5,
+        discountPercent: 10,
+        deliveryDate: "2026-12-24",
       });
     expect(productResponse.status).toBe(201);
     const productId = Number(productResponse.body.id);
@@ -255,6 +264,23 @@ describe("API and database integration", () => {
       });
     expect(invalidPaymentResponse.status).toBe(400);
 
+    await request(server)
+      .put(`/api/carts/${cartKey}`)
+      .send([{ productId, quantity: 6 }]);
+    const overstockResponse = await request(server)
+      .post("/api/orders")
+      .set("Cookie", sessionCookie("customer", customer.id, email))
+      .send({
+        cartKey,
+        shippingAddress: "12 Main Street, Pune",
+        paymentMethod: "cash_on_delivery",
+      });
+    expect(overstockResponse.status).toBe(400);
+    expect((await TestDataSource.getRepository(Product).findOneByOrFail({ id: productId })).stock).toBe(5);
+
+    await request(server)
+      .put(`/api/carts/${cartKey}`)
+      .send([{ productId, quantity: 2 }]);
     const orderResponse = await request(server)
       .post("/api/orders")
       .set("Cookie", sessionCookie("customer", customer.id, email))
@@ -267,19 +293,29 @@ describe("API and database integration", () => {
     const orderId = Number(orderResponse.body.id);
     orderIds.push(orderId);
     const savedOrder = await TestDataSource.getRepository(Order).findOneByOrFail({ id: orderId });
-    expect(Number(savedOrder.total)).toBe(39.98);
+    expect(Number(savedOrder.total)).toBe(35.98);
     expect(savedOrder.customerId).toBe(customer.id);
-    expect(savedOrder.items).toMatchObject([{ productId, quantity: 2, price: 19.99 }]);
+    expect(savedOrder.items).toMatchObject([{
+      productId,
+      quantity: 2,
+      price: 17.99,
+      deliveryDate: "2026-12-24",
+    }]);
     expect(savedOrder.shippingAddress).toBe("12 Main Street, Pune");
     expect(savedOrder.paymentMethod).toBe("cash_on_delivery");
+    expect((await TestDataSource.getRepository(Product).findOneByOrFail({ id: productId })).stock).toBe(3);
     expect(await TestDataSource.getRepository(OrderItemRecord).findOneByOrFail({
       orderId,
       productId,
-    })).toMatchObject({ productName: `Order Product ${suffix}`, quantity: 2 });
+    })).toMatchObject({
+      productName: `Order Product ${suffix}`,
+      quantity: 2,
+      deliveryDate: "2026-12-24",
+    });
     expect(await TestDataSource.getRepository(Payment).findOneByOrFail({ orderId })).toMatchObject({
       paymentMethod: "cash_on_delivery",
       paymentStatus: "pending",
-      amount: "39.98",
+      amount: "35.98",
     });
     expect(await TestDataSource.getRepository(Cart).findOneBy({ cartKey })).toBeNull();
     expect((await request(server)
@@ -292,6 +328,7 @@ describe("API and database integration", () => {
       .set("Cookie", sessionCookie("customer", customer.id, email));
     expect(cancelResponse.status).toBe(200);
     expect(cancelResponse.body.status).toBe("cancelled");
+    expect((await TestDataSource.getRepository(Product).findOneByOrFail({ id: productId })).stock).toBe(5);
     expect((await TestDataSource.getRepository(Order).findOneByOrFail({ id: orderId })).status).toBe("cancelled");
 
     const repeatCancelResponse = await request(server)
