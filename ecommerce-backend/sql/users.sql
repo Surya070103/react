@@ -1,2 +1,10 @@
-SELECT id, name, email, phoneno, status, orders, joined, actions
-FROM shopeasy_db.users;
+CREATE DATABASE IF NOT EXISTS ecommerce;
+
+SELECT @@port, CURRENT_USER();
+
+CREATE DATABASE IF NOT EXISTS ecommerce;
+CREATE USER IF NOT EXISTS 'ecommerce_app'@'localhost'
+  IDENTIFIED BY 'REPLACE_WITH_A_STRONG_PASSWORD';
+ALTER USER 'ecommerce_app'@'localhost'
+  IDENTIFIED BY 'REPLACE_WITH_A_STRONG_PASSWORD';
+GRANT ALL PRIVILEGES ON ecommerce.* TO 'ecommerce_app'@'localhost';
