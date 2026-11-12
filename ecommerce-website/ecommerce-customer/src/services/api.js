@@ -7,6 +7,8 @@ const toProduct = (product) => ({
   description: product.description,
   price: Number(product.price),
   image: product.imageUrl || '/images/everyday-shirt.png',
+  stock: product.stock == null ? null : Number(product.stock),
+  discountPercent: Number(product.discountPercent ?? 0),
 });
 
 const toUser = (user) => ({
@@ -182,6 +184,8 @@ export const api = {
         description: productData.description,
         price: productData.price,
         imageUrl: productData.image,
+        stock: productData.stock,
+        discountPercent: productData.discountPercent,
       }),
     });
     if (!response.ok) {
@@ -202,6 +206,8 @@ export const api = {
         description: productData.description,
         price: productData.price,
         imageUrl: productData.image,
+        stock: productData.stock,
+        discountPercent: productData.discountPercent,
       }),
     });
     if (!response.ok) {

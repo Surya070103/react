@@ -4,8 +4,8 @@ import { ProductRepository } from "../repositories/ProductRepository";
 
 export class CartService {
   constructor(
-    private readonly cartRepository = new CartRepository(),
-    private readonly productRepository = new ProductRepository()
+    private readonly cartRepository: Pick<CartRepository, "findByKey" | "save" | "delete"> = new CartRepository(),
+    private readonly productRepository: Pick<ProductRepository, "findById"> = new ProductRepository()
   ) {}
 
   async get(cartKey: string): Promise<CartItem[]> {
@@ -31,8 +31,15 @@ export class CartService {
       ) {
         throw new Error("Each cart item must have a unique productId and a quantity from 1 to 99");
       }
-      if (!await this.productRepository.findById(item.productId)) {
+      const product = await this.productRepository.findById(item.productId);
+      if (!product) {
         throw new Error(`Product ${item.productId} was not found`);
+      }
+      if (product.status !== "active") {
+        throw new Error(`${product.name} is no longer available`);
+      }
+      if (item.quantity > product.stock) {
+        throw new Error(`Only ${product.stock} ${product.name} units are in stock`);
       }
       seenProductIds.add(item.productId);
       items.push({ productId: item.productId, quantity: item.quantity });

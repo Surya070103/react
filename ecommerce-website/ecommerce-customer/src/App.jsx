@@ -2,12 +2,43 @@ import { useState, useEffect } from 'react'
 import { Link, NavLink, useLocation, useMatch, useNavigate } from 'react-router-dom'
 import './App.css'
 import { api } from './services/api'
+import { formatDeliveryEstimate, getDeliveryEstimate } from './services/deliveryEstimate'
 
 const formatInr = (amount) => new Intl.NumberFormat('en-IN', {
   style: 'currency',
   currency: 'INR',
-  maximumFractionDigits: 0,
+  maximumFractionDigits: 2,
 }).format(amount)
+
+const getProductStock = (product) => {
+  if (product.stock === null || product.stock === undefined) return null
+  const stock = Number(product.stock)
+  return Number.isSafeInteger(stock) && stock >= 0 ? stock : null
+}
+const isOutOfStock = (product) => {
+  const stock = getProductStock(product)
+  return stock !== null && stock <= 0
+}
+const getDiscountedPrice = (product) => {
+  const priceInCents = Math.round(Number(product.price) * 100)
+  const discountPercent = Number(product.discountPercent || 0)
+  return Math.round(priceInCents * (100 - discountPercent) / 100) / 100
+}
+
+const ProductPrice = ({ product, quantity = 1 }) => {
+  const discountPercent = Number(product.discountPercent || 0)
+  const hasDiscount = discountPercent > 0
+
+  return (
+    <div className={`product-price product-price-group${hasDiscount ? ' has-discount' : ''}`}>
+      {hasDiscount && <span className="product-original-price">{formatInr(product.price * quantity)}</span>}
+      <strong className="product-current-price">
+        {formatInr((hasDiscount ? getDiscountedPrice(product) : product.price) * quantity)}
+      </strong>
+      {hasDiscount && <span className="product-discount-label">{discountPercent}% off</span>}
+    </div>
+  )
+}
 
 const getPaymentMethodLabel = (paymentMethod) => ({
   cash_on_delivery: 'Cash on delivery',
@@ -26,6 +57,8 @@ const defaultProducts = [
     image: '/images/everyday-shirt.png',
     category: 'Apparel',
     description: 'A classic, comfortable cotton T-shirt designed for everyday wear.',
+    stock: null,
+    discountPercent: 0,
   },
   {
     id: 'keyboard-cover',
@@ -34,6 +67,8 @@ const defaultProducts = [
     image: '/images/keyboard-cover.jpg',
     category: 'Accessories',
     description: 'A slim protective cover that keeps your keyboard clean and comfortable to use.',
+    stock: null,
+    discountPercent: 0,
   },
   {
     id: 'wireless-mouse',
@@ -42,6 +77,8 @@ const defaultProducts = [
     image: '/images/mouse.jpg',
     category: 'Electronics',
     description: 'A reliable wireless mouse with smooth tracking for work or everyday browsing.',
+    stock: null,
+    discountPercent: 0,
   },
   {
     id: 'smartphone',
@@ -50,6 +87,8 @@ const defaultProducts = [
     image: '/images/smartphone.png',
     category: 'Electronics',
     description: 'A modern smartphone for staying connected, capturing photos, and enjoying apps.',
+    stock: null,
+    discountPercent: 0,
   },
 ]
 
@@ -118,8 +157,9 @@ function App() {
   const filteredProducts = products.filter((product) => {
     const minPrice = priceRange.min === '' ? null : Number(priceRange.min)
     const maxPrice = priceRange.max === '' ? null : Number(priceRange.max)
-    return (minPrice === null || product.price >= minPrice)
-      && (maxPrice === null || product.price <= maxPrice)
+    const price = getDiscountedPrice(product)
+    return (minPrice === null || price >= minPrice)
+      && (maxPrice === null || price <= maxPrice)
   })
   const selectedAdminProduct = products.find((product) => product.id === (editingProductId || deleteProductMatch?.params.productId))
   const [cartKey] = useState(() => {
@@ -158,6 +198,14 @@ function App() {
   const [isPasswordResetSaving, setIsPasswordResetSaving] = useState(false)
   const [passwordResetMessage, setPasswordResetMessage] = useState('')
   const cartCount = [...cart.values()].reduce((total, quantity) => total + quantity, 0)
+  const cartHasUnavailableItems = products.some((product) => {
+    const stock = getProductStock(product)
+    return stock !== null && (cart.get(product.id) || 0) > stock
+  })
+  const canAddToCart = (product) => {
+    const stock = getProductStock(product)
+    return stock === null || (!isOutOfStock(product) && (cart.get(product.id) || 0) < stock)
+  }
 
   useEffect(() => {
     api.getCurrentUser()
@@ -280,6 +328,8 @@ function App() {
   }
 
   const addToCart = (productId) => {
+    const product = products.find((item) => item.id === productId)
+    if (!product || !canAddToCart(product)) return
     setOrderConfirmation('')
     setCart((currentCart) => {
       const nextCart = new Map(currentCart)
@@ -424,9 +474,19 @@ function App() {
     const description = String(formData.get('description') || '').trim()
     const imageUrl = String(formData.get('image') || '').trim()
     const price = Number(formData.get('price'))
+    const stock = Number(formData.get('stock'))
+    const discountPercent = Number(formData.get('discountPercent'))
 
     if (!name || !category || !description || !Number.isFinite(price) || price <= 0) {
       setAdminFormMessage('Enter a name, category, description, and price greater than zero.')
+      return
+    }
+    if (!Number.isSafeInteger(stock) || stock < 0 || stock > 4294967295) {
+      setAdminFormMessage('Enter a non-negative whole number for stock.')
+      return
+    }
+    if (!Number.isInteger(discountPercent) || discountPercent < 0 || discountPercent > 100) {
+      setAdminFormMessage('Enter a whole-number discount from 0 to 100 percent.')
       return
     }
 
@@ -449,6 +509,8 @@ function App() {
       description,
       image: imageUrl || existingProduct?.image || '/images/everyday-shirt.png',
       price,
+      stock,
+      discountPercent,
     }
     try {
       const savedProduct = editingProductId
@@ -610,11 +672,28 @@ function App() {
         shippingAddress: String(formData.get('shippingAddress') || '').trim(),
         paymentMethod: String(formData.get('paymentMethod') || ''),
       })
-      setOrderConfirmation(`Order ${order.id} placed. ${getPaymentMethodLabel(order.paymentMethod)} was selected; payment is not processed online.`)
+      const estimate = formatDeliveryEstimate(getDeliveryEstimate())
+      setOrderConfirmation(`Order ${order.id} placed. Estimated delivery: ${estimate} (3-5 business days). ${getPaymentMethodLabel(order.paymentMethod)} was selected; payment is not processed online.`)
       setCustomerEmail(order.customerEmail)
       setAuthUser((current) => current ? { ...current, name: order.customerName } : current)
+      setProductStore((current) => ({
+        ...current,
+        products: current.products.map((product) => {
+          const stock = getProductStock(product)
+          const purchasedQuantity = cart.get(product.id) || 0
+          return stock === null
+            ? product
+            : { ...product, stock: Math.max(0, stock - purchasedQuantity) }
+        }),
+      }))
       setCart(new Map())
       setCartMessage('')
+      api.getProducts()
+        .then((freshProducts) => setProductStore({ products: freshProducts, message: '' }))
+        .catch((error) => {
+          const reason = error instanceof Error ? error.message : 'Unknown error.'
+          setCartMessage(`Order placed, but inventory could not be refreshed: ${reason}`)
+        })
       setActiveView('cart')
     } catch (error) {
       const reason = error instanceof Error ? error.message : 'Unknown error.'
@@ -1076,6 +1155,32 @@ function App() {
                         />
                       </div>
                       <div className="admin-field">
+                        <label htmlFor="admin-product-stock">Stock quantity</label>
+                        <input
+                          id="admin-product-stock"
+                          name="stock"
+                          type="number"
+                          min="0"
+                          max="4294967295"
+                          step="1"
+                          required
+                          defaultValue={selectedAdminProduct?.stock ?? 0}
+                        />
+                      </div>
+                      <div className="admin-field">
+                        <label htmlFor="admin-product-discount">Offer discount (%)</label>
+                        <input
+                          id="admin-product-discount"
+                          name="discountPercent"
+                          type="number"
+                          min="0"
+                          max="100"
+                          step="1"
+                          required
+                          defaultValue={selectedAdminProduct?.discountPercent ?? 0}
+                        />
+                      </div>
+                      <div className="admin-field">
                         <label htmlFor="admin-product-image">Image URL (optional)</label>
                         <input
                           id="admin-product-image"
@@ -1145,7 +1250,8 @@ function App() {
                           <th scope="col">Image</th>
                           <th scope="col">Product</th>
                           <th scope="col">Category</th>
-                          <th scope="col">Price</th>
+                          <th scope="col">Stock</th>
+                          <th scope="col">Price / offer</th>
                           <th scope="col">Actions</th>
                         </tr>
                       </thead>
@@ -1165,7 +1271,8 @@ function App() {
                               <p>{product.description}</p>
                             </td>
                             <td>{product.category}</td>
-                            <td><strong className="product-price">{formatInr(product.price)}</strong></td>
+                            <td>{getProductStock(product) ?? 'Unknown'}</td>
+                            <td><ProductPrice product={product} /></td>
                             <td className="admin-product-actions">
                               <button className="admin-secondary-button" type="button" onClick={() => editProduct(product)}>Edit</button>
                               <button className="admin-delete-button" type="button" onClick={() => deleteProduct(product.id)}>Delete</button>
@@ -1277,6 +1384,12 @@ function App() {
                             }
                           }}
                         />
+                        <div className="product-badges">
+                          {Number(product.discountPercent || 0) > 0 && (
+                            <span className="product-offer-badge">{product.discountPercent}% off</span>
+                          )}
+                          {isOutOfStock(product) && <span className="product-stock-badge">Out of stock</span>}
+                        </div>
                         <button
                           className={`wishlist-button${wishlist.has(product.id) ? ' is-wishlisted' : ''}`}
                           type="button"
@@ -1292,8 +1405,15 @@ function App() {
                           className={`add-to-cart-icon${cart.has(product.id) ? ' is-in-cart' : ''}`}
                           type="button"
                           onClick={() => addToCart(product.id)}
-                          aria-label={`${cart.has(product.id) ? 'Add another' : 'Add'} ${product.name} to cart${cart.has(product.id) ? `; ${cart.get(product.id)} in cart` : ''}`}
-                          title={cart.has(product.id) ? `${cart.get(product.id)} in cart; add another` : 'Add to cart'}
+                          disabled={!canAddToCart(product)}
+                          aria-label={isOutOfStock(product)
+                            ? `${product.name} is out of stock`
+                            : !canAddToCart(product)
+                              ? `Maximum available quantity of ${product.name} is already in your cart`
+                              : `${cart.has(product.id) ? 'Add another' : 'Add'} ${product.name} to cart${cart.has(product.id) ? `; ${cart.get(product.id)} in cart` : ''}`}
+                          title={isOutOfStock(product)
+                            ? 'Out of stock'
+                            : canAddToCart(product) ? 'Add to cart' : 'Maximum available stock is already in your cart'}
                         >
                           <svg viewBox="0 0 24 24" aria-hidden="true">
                             <path d="M3 3h2l2.4 12.1a2 2 0 0 0 2 1.6h8.9a2 2 0 0 0 1.9-1.4L22 8H6" />
@@ -1309,7 +1429,7 @@ function App() {
                             {product.name}
                           </button>
                         </div>
-                        <p className="product-price">{formatInr(product.price)}</p>
+                        <ProductPrice product={product} />
                       </div>
                       <div className="product-card-footer">
                         <p className="product-description">{product.description}</p>
@@ -1351,11 +1471,24 @@ function App() {
                     <div className="product-detail-content">
                       <p className="product-category">{product.category}</p>
                       <h1>{product.name}</h1>
-                      <p className="product-price">{formatInr(product.price)}</p>
+                      {isOutOfStock(product) ? (
+                        <p className="product-stock-message is-out-of-stock">Out of stock</p>
+                      ) : getProductStock(product) !== null ? (
+                        <p className="product-stock-message">{getProductStock(product)} in stock</p>
+                      ) : null}
+                      <ProductPrice product={product} />
                       <p className="product-detail-description">{product.description}</p>
+                      <p className="delivery-estimate">
+                        Estimated delivery: {formatDeliveryEstimate(getDeliveryEstimate())} (3-5 business days; weekends excluded).
+                      </p>
                       <div className="product-detail-actions">
-                        <button className="login-submit" type="button" onClick={() => addToCart(product.id)}>
-                          Add to cart
+                        <button
+                          className="login-submit"
+                          type="button"
+                          onClick={() => addToCart(product.id)}
+                          disabled={!canAddToCart(product)}
+                        >
+                          {isOutOfStock(product) ? 'Out of stock' : canAddToCart(product) ? 'Add to cart' : 'Stock limit reached'}
                         </button>
                         <button
                           className={`product-detail-wishlist${wishlist.has(product.id) ? ' is-wishlisted' : ''}`}
@@ -1407,6 +1540,12 @@ function App() {
                             }
                           }}
                         />
+                        <div className="product-badges">
+                          {Number(product.discountPercent || 0) > 0 && (
+                            <span className="product-offer-badge">{product.discountPercent}% off</span>
+                          )}
+                          {isOutOfStock(product) && <span className="product-stock-badge">Out of stock</span>}
+                        </div>
                         <button
                           className="wishlist-button is-wishlisted"
                           type="button"
@@ -1427,7 +1566,7 @@ function App() {
                           </button>
                           <p className="product-description">{product.description}</p>
                         </div>
-                        <p className="product-price">{formatInr(product.price)}</p>
+                        <ProductPrice product={product} />
                       </div>
                     </article>
                   ))}
@@ -1463,20 +1602,30 @@ function App() {
                       <div className="cart-item-details">
                         <p className="product-category">{product.category}</p>
                         <h2>{product.name}</h2>
-                        <p>{cart.get(product.id)} × {formatInr(product.price)}</p>
+                        <p>{cart.get(product.id)} × {formatInr(getDiscountedPrice(product))}</p>
+                        {getProductStock(product) !== null && cart.get(product.id) > getProductStock(product) && (
+                          <p className="product-stock-message is-out-of-stock" role="alert">
+                            Only {getProductStock(product)} units are currently in stock.
+                          </p>
+                        )}
                       </div>
-                      <p className="product-price">{formatInr(product.price * cart.get(product.id))}</p>
+                      <ProductPrice product={product} quantity={cart.get(product.id)} />
                       <button className="remove-cart-item" type="button" onClick={() => removeOneFromCart(product.id)}>
                         Remove one
                       </button>
                     </article>
                   ))}
                   <p className="cart-total">
-                    Total: {formatInr(products.reduce((total, product) => total + product.price * (cart.get(product.id) || 0), 0))}
+                    Total: {formatInr(products.reduce((total, product) => (
+                      total + getDiscountedPrice(product) * (cart.get(product.id) || 0)
+                    ), 0))}
                   </p>
                   <form className="admin-product-form" onSubmit={placeOrder}>
                     <h2>Checkout</h2>
                     <p>Order will be placed for {authUser?.name} ({customerEmail}).</p>
+                    <p className="delivery-estimate">
+                      Estimated delivery: {formatDeliveryEstimate(getDeliveryEstimate())} (3-5 business days; weekends excluded).
+                    </p>
                     <div className="admin-form-grid">
                       <div className="admin-field admin-description-field">
                         <label htmlFor="order-shipping-address">Delivery address</label>
@@ -1501,8 +1650,12 @@ function App() {
                       </div>
                     </div>
                     <p>Payment selections are recorded with your order. Online payments are not currently processed.</p>
-                    <button className="login-submit place-order-button" type="submit" disabled={isOrderSubmitting}>
-                      {isOrderSubmitting ? 'Saving order...' : 'Place order'}
+                    <button
+                      className="login-submit place-order-button"
+                      type="submit"
+                      disabled={isOrderSubmitting || cartHasUnavailableItems}
+                    >
+                      {isOrderSubmitting ? 'Saving order...' : cartHasUnavailableItems ? 'Update cart stock' : 'Place order'}
                     </button>
                   </form>
                 </div>

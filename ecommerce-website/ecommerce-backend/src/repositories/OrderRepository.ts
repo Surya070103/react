@@ -3,6 +3,7 @@ import { AppDataSource } from "../data-source";
 import { Order, OrderItem, PaymentMethod } from "../entities/Order";
 import { OrderItemRecord } from "../entities/OrderItemRecord";
 import { Payment } from "../entities/Payment";
+import { Product } from "../entities/Product";
 
 export class OrderRepository {
   private readonly repository: Repository<Order>;
@@ -29,6 +30,22 @@ export class OrderRepository {
     paymentMethod: PaymentMethod;
   }): Promise<Order> {
     return this.dataSource.transaction(async (manager) => {
+      const products = manager.getRepository(Product);
+      for (const item of input.items) {
+        const inventoryUpdate = await products
+          .createQueryBuilder()
+          .update(Product)
+          .set({ stock: () => "stock - :quantity" })
+          .where("id = :productId AND status = 'active' AND stock >= :quantity", {
+            productId: item.productId,
+            quantity: item.quantity,
+          })
+          .execute();
+        if (inventoryUpdate.affected !== 1) {
+          throw new Error(`Not enough stock for ${item.name}`);
+        }
+      }
+
       const orders = manager.getRepository(Order);
       const order = await orders.save(orders.create(input));
       await manager.getRepository(OrderItemRecord).save(input.items.map((item) => ({

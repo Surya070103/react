@@ -8,10 +8,10 @@ import { AuthSession } from "../types/user";
 
 export class OrderService {
   constructor(
-    private readonly orderRepository = new OrderRepository(),
-    private readonly cartRepository = new CartRepository(),
-    private readonly productRepository = new ProductRepository(),
-    private readonly userRepository = new UserRepository()
+    private readonly orderRepository: Pick<OrderRepository, "findAll" | "findByCustomerId" | "create"> = new OrderRepository(),
+    private readonly cartRepository: Pick<CartRepository, "findByKey" | "delete"> = new CartRepository(),
+    private readonly productRepository: Pick<ProductRepository, "findById"> = new ProductRepository(),
+    private readonly userRepository: Pick<UserRepository, "findById" | "update"> = new UserRepository()
   ) {}
 
   async getAll(session: AuthSession) {
@@ -51,10 +51,21 @@ export class OrderService {
       if (!product) {
         throw new Error(`Product ${cartItem.productId} is no longer available`);
       }
+      if (product.status !== "active") {
+        throw new Error(`${product.name} is no longer available`);
+      }
+      if (cartItem.quantity > product.stock) {
+        throw new Error(`Only ${product.stock} ${product.name} units are in stock`);
+      }
+      if (!Number.isInteger(product.discountPercent) || product.discountPercent < 0 || product.discountPercent > 100) {
+        throw new Error(`Invalid discount configured for ${product.name}`);
+      }
+      const priceCents = Math.round(Number(product.price) * 100);
+      const discountedPrice = Math.round(priceCents * (100 - product.discountPercent) / 100) / 100;
       items.push({
         productId: product.id,
         name: product.name,
-        price: Number(product.price),
+        price: discountedPrice,
         quantity: cartItem.quantity,
       });
     }

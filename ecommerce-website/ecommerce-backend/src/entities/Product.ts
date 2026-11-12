@@ -23,6 +23,9 @@ export class Product {
   @Column({ type: "int", unsigned: true, default: 0 })
   stock!: number;
 
+  @Column({ name: "discount_percent", type: "tinyint", unsigned: true, default: 0 })
+  discountPercent!: number;
+
   @Column({ length: 20, default: "active" })
   status!: string;
 

@@ -17,6 +17,7 @@ describe("ProductService Unit Tests", () => {
     description: "RGB Mechanical Keyboard",
     price: 1999,
     stock: 0,
+    discountPercent: 0,
     status: "active",
     imageUrl: "http://example.com/keyboard.jpg",
     ownerUserId: null,
@@ -70,6 +71,8 @@ describe("ProductService Unit Tests", () => {
         description: sampleProduct.description,
         price: 2499,
         imageUrl: sampleProduct.imageUrl,
+        stock: sampleProduct.stock,
+        discountPercent: sampleProduct.discountPercent,
       });
       expect(result.price).toBe(2499);
     });
@@ -107,6 +110,8 @@ describe("ProductService Unit Tests", () => {
         description: sampleProduct.description,
         price: sampleProduct.price,
         imageUrl: sampleProduct.imageUrl,
+        stock: sampleProduct.stock,
+        discountPercent: sampleProduct.discountPercent,
       });
     });
 
@@ -117,6 +122,42 @@ describe("ProductService Unit Tests", () => {
         "Price must be greater than zero"
       );
       expect(mockProductRepository.update).not.toHaveBeenCalled();
+    });
+
+    it("should reject negative stock and discounts over 100 percent", async () => {
+      mockProductRepository.findById.mockResolvedValue(sampleProduct);
+
+      await expect(productService.update(1, { stock: -1 })).rejects.toThrow(
+        "Stock must be a non-negative whole number"
+      );
+      await expect(productService.update(1, { discountPercent: 101 })).rejects.toThrow(
+        "Discount percent must be a whole number from 0 to 100"
+      );
+      expect(mockProductRepository.update).not.toHaveBeenCalled();
+    });
+  });
+
+  it("defaults new products to no stock and no discount", async () => {
+    mockProductRepository.findByName.mockResolvedValue(null);
+    mockProductRepository.create.mockResolvedValue(sampleProduct);
+
+    await productService.create({
+      name: sampleProduct.name,
+      category: sampleProduct.category,
+      description: sampleProduct.description,
+      price: sampleProduct.price,
+      imageUrl: sampleProduct.imageUrl,
+    });
+
+    expect(mockProductRepository.create).toHaveBeenCalledWith({
+      name: sampleProduct.name,
+      category: sampleProduct.category,
+      description: sampleProduct.description,
+      price: sampleProduct.price,
+      imageUrl: sampleProduct.imageUrl,
+      stock: 0,
+      discountPercent: 0,
+      ownerUserId: null,
     });
   });
 

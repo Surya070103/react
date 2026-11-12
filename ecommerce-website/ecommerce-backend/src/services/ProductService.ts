@@ -2,6 +2,11 @@ import { Product } from "../entities/Product";
 import { ProductRepository } from "../repositories/ProductRepository";
 import { CreateProductInput, UpdateProductInput } from "../types/product";
 
+interface ValidatedProductInput extends Omit<CreateProductInput, "stock" | "discountPercent"> {
+  stock: number;
+  discountPercent: number;
+}
+
 export class ProductService {
   constructor(
     private readonly productRepository: Pick<
@@ -45,7 +50,7 @@ export class ProductService {
     await this.productRepository.delete(product);
   }
 
-  private validate(input: CreateProductInput): CreateProductInput {
+  private validate(input: CreateProductInput): ValidatedProductInput {
     const name = input.name?.trim();
     const category = input.category?.trim();
     const description = input.description?.trim();
@@ -57,6 +62,14 @@ export class ProductService {
     if (!Number.isFinite(input.price) || input.price <= 0) {
       throw new Error("Price must be greater than zero");
     }
-    return { name, category, description, imageUrl, price: input.price };
+    const stock = input.stock ?? 0;
+    if (!Number.isSafeInteger(stock) || stock < 0 || stock > 4_294_967_295) {
+      throw new Error("Stock must be a non-negative whole number");
+    }
+    const discountPercent = input.discountPercent ?? 0;
+    if (!Number.isInteger(discountPercent) || discountPercent < 0 || discountPercent > 100) {
+      throw new Error("Discount percent must be a whole number from 0 to 100");
+    }
+    return { name, category, description, imageUrl, price: input.price, stock, discountPercent };
   }
 }

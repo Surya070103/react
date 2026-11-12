@@ -163,14 +163,22 @@ connection settings. Never point integration tests at production data.
 - If products cannot be fetched, the frontend can display its built-in sample
   products and shows an error message. This fallback does not mean the backend
   is connected.
+- Product stock and percentage offers are managed in the administrator portal.
+  Out-of-stock products cannot be added to a cart, and checkout rechecks and
+  decrements inventory in the database. Discounts are applied by the backend
+  when it calculates order prices.
 - Customers can add products to a browser cart. The browser keeps a cart key in
   local storage and loads/saves the matching cart through the backend.
 - A cart item contains a product ID and quantity. The backend checks that the
   product exists, quantities are from 1 through 99, and a product is not
   duplicated in the submitted list.
 - Checkout requires a signed-in customer, a delivery address, and a payment
-  option. The server reads product names and prices from the database, creates
-  the order and pending payment record, then clears the cart.
+  option. The server reads product names and prices from the database, applies
+  active discounts, creates the order and pending payment record, then clears
+  the cart.
+- Product details and checkout show a 3–5 business-day delivery estimate,
+  excluding weekends. It is a general estimate; shipping zones and holidays
+  are not currently considered.
 - The listed payment option is recorded only; no online payment provider is
   connected.
 - The wishlist is currently an in-memory frontend feature and is lost on a
@@ -238,8 +246,8 @@ to these tables:
 
 - **users** — customer profile, email, phone, password hash, role, status, and
   order count.
-- **products** — product details, category, price, inventory/status, image URL,
-  and timestamps.
+- **products** — product details, category, price, stock quantity, percentage
+  discount, status, image URL, and timestamps.
 - **categories** — category names and status.
 - **carts** — unique browser cart key and a JSON snapshot of product IDs and
   quantities. **cart_items** also stores normalized cart rows.
@@ -272,6 +280,8 @@ The migrations build on the existing application schema:
 4. `AddPortalSchema1730220000000` adds category, stock, cart/order line,
    address, wishlist, and payment schema, and backfills compatible existing
    data.
+5. `AddProductDiscount1730270000000` adds the product percentage discount
+   field.
 
 Back up important data before migrations. `npm run migration:revert` reverses
 the latest migration and can drop tables or columns introduced by that

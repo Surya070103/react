@@ -219,10 +219,17 @@ describe("API and database integration", () => {
         description: "Order integration fixture",
         price: 19.99,
         imageUrl: "https://example.com/order-product.png",
+        stock: 5,
+        discountPercent: 10,
       });
     expect(productResponse.status).toBe(201);
     const productId = Number(productResponse.body.id);
     productIds.push(productId);
+
+    const oversizedCartResponse = await request(server)
+      .put(`/api/carts/${cartKey}`)
+      .send([{ productId, quantity: 6 }]);
+    expect(oversizedCartResponse.status).toBe(400);
 
     const cartResponse = await request(server)
       .put(`/api/carts/${cartKey}`)
@@ -267,9 +274,10 @@ describe("API and database integration", () => {
     const orderId = Number(orderResponse.body.id);
     orderIds.push(orderId);
     const savedOrder = await TestDataSource.getRepository(Order).findOneByOrFail({ id: orderId });
-    expect(Number(savedOrder.total)).toBe(39.98);
+    expect(Number(savedOrder.total)).toBe(35.98);
     expect(savedOrder.customerId).toBe(customer.id);
-    expect(savedOrder.items).toMatchObject([{ productId, quantity: 2, price: 19.99 }]);
+    expect(savedOrder.items).toMatchObject([{ productId, quantity: 2, price: 17.99 }]);
+    expect((await TestDataSource.getRepository(Product).findOneByOrFail({ id: productId })).stock).toBe(3);
     expect(savedOrder.shippingAddress).toBe("12 Main Street, Pune");
     expect(savedOrder.paymentMethod).toBe("upi");
     expect(await TestDataSource.getRepository(OrderItemRecord).findOneByOrFail({
@@ -279,7 +287,7 @@ describe("API and database integration", () => {
     expect(await TestDataSource.getRepository(Payment).findOneByOrFail({ orderId })).toMatchObject({
       paymentMethod: "upi",
       paymentStatus: "pending",
-      amount: "39.98",
+      amount: "35.98",
     });
     expect(await TestDataSource.getRepository(Cart).findOneBy({ cartKey })).toBeNull();
     expect((await request(server)

@@ -16,6 +16,7 @@ import { InitialSchema1730190000000 } from "./migrations/InitialSchema";
 import { AddAccountRoles1730200000000 } from "./migrations/AddAccountRoles1730200000000";
 import { AddOrderCheckoutDetails1730210000000 } from "./migrations/AddOrderCheckoutDetails1730210000000";
 import { AddPortalSchema1730220000000 } from "./migrations/AddPortalSchema1730220000000";
+import { AddProductDiscount1730270000000 } from "./migrations/AddProductDiscount1730270000000";
 
 export const AppDataSource = new DataSource({
   type: "mysql",
@@ -32,5 +33,6 @@ export const AppDataSource = new DataSource({
     AddAccountRoles1730200000000,
     AddOrderCheckoutDetails1730210000000,
     AddPortalSchema1730220000000,
+    AddProductDiscount1730270000000,
   ],
 });

@@ -1,4 +1,4 @@
-export interface CreateProductInput {
+interface ProductFields {
   name: string;
   category: string;
   description: string;
@@ -6,7 +6,14 @@ export interface CreateProductInput {
   imageUrl: string;
 }
 
-export interface PersistProductInput extends CreateProductInput {
+export interface CreateProductInput extends ProductFields {
+  stock?: number;
+  discountPercent?: number;
+}
+
+export interface PersistProductInput extends ProductFields {
+  stock: number;
+  discountPercent: number;
   ownerUserId: number | null;
 }
 

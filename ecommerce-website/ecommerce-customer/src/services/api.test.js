@@ -15,6 +15,8 @@ test('updateProduct sends PATCH to the requested product record ID', async () =>
     description: 'Updated description',
     price: 600,
     image: '/images/mouse.jpg',
+    stock: 8,
+    discountPercent: 25,
   }
   const updatedRecord = {
     id: 42,
@@ -41,6 +43,8 @@ test('updateProduct sends PATCH to the requested product record ID', async () =>
     description: productData.description,
     price: productData.price,
     imageUrl: productData.image,
+    stock: productData.stock,
+    discountPercent: productData.discountPercent,
   })
   assert.deepEqual(result, {
     id: '42',
@@ -49,6 +53,8 @@ test('updateProduct sends PATCH to the requested product record ID', async () =>
     description: productData.description,
     price: productData.price,
     image: productData.image,
+    stock: productData.stock,
+    discountPercent: productData.discountPercent,
   })
 })
 
