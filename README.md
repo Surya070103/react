@@ -8,16 +8,7 @@ Customers can register, sign in, browse products, manage a cart, and place order
 
 The backend API and MySQL database are the source of truth for accounts, products, carts, and orders.
 
-## Technology and Project Structure
 
-| Area | Responsibility |
-|---|---|
-| React Customer App | Storefront, checkout, and admin UI |
-| API Client | Sends browser requests to the backend |
-| Node.js HTTP Server | Receives requests and matches routes |
-| Routes/Controllers | Route access checks and request handling |
-| Repositories/Entities | TypeORM database access and MySQL table mappings |
-| Migrations/Tests | Versioned schema changes and automated checks |
 
 ## How Frontend and Backend Communicate
 
